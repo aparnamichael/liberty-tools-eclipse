@@ -12,6 +12,7 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.debug;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ServerSocket;
@@ -117,7 +118,7 @@ public class DebugModeHandler {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort, configParms });
         }
-
+        printTheDirectoryPath(new File("/target"));
         String startParms = configParms;
         String addendum = null;
 
@@ -216,6 +217,7 @@ public class DebugModeHandler {
      */
     public void startDebugAttacher(Project project, ILaunch launch, String port) {
         String projectName = project.getIProject().getName();
+        printTheDirectoryPath(new File("/target"));
 
         Job job = new Job("Attaching Debugger to JVM...") {
             @Override
@@ -300,6 +302,7 @@ public class DebugModeHandler {
                     display.syncExec(new Runnable() {
                         public void run() {
                             openDebugPerspective();
+                            printTheDirectoryPath(new File("/target"));
                         }
                     });
                 } else {
@@ -598,5 +601,10 @@ public class DebugModeHandler {
 
     private class DataHolder {
         boolean started;
+    }
+    
+    //The test method.
+    private void printTheDirectoryPath(File dir) {
+        System.out.println("Invalid root directory: " + dir.getAbsolutePath());
     }
 }
