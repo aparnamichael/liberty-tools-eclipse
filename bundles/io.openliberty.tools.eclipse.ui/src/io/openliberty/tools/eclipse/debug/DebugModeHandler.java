@@ -13,6 +13,7 @@
 package io.openliberty.tools.eclipse.debug;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ServerSocket;
@@ -118,7 +119,6 @@ public class DebugModeHandler {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort, configParms });
         }
-        printTheDirectoryPath(new File("/target"));
         String startParms = configParms;
         String addendum = null;
 
@@ -217,7 +217,6 @@ public class DebugModeHandler {
      */
     public void startDebugAttacher(Project project, ILaunch launch, String port) {
         String projectName = project.getIProject().getName();
-        printTheDirectoryPath(new File("/target"));
 
         Job job = new Job("Attaching Debugger to JVM...") {
             @Override
@@ -302,7 +301,7 @@ public class DebugModeHandler {
                     display.syncExec(new Runnable() {
                         public void run() {
                             openDebugPerspective();
-                            printTheDirectoryPath(new File("/target"));
+                            enableDisableAppMonitoring(true, project);
                         }
                     });
                 } else {
@@ -602,9 +601,114 @@ public class DebugModeHandler {
     private class DataHolder {
         boolean started;
     }
-    
-    //The test method.
-    private void printTheDirectoryPath(File dir) {
-        System.out.println("Invalid root directory: " + dir.getAbsolutePath());
+
+    // Enable/Disable app monitoring.
+    public void enableDisableAppMonitoring(Boolean isEnable, Project project) {
+    	if (isEnable) {
+    		String folderName = "servers";
+    		String fileName = "server.xml";
+    		System.out.println("Started enable disable app monitoring");
+
+    		try {
+    			if (project == null || project.getPath() == null) {
+    				System.err.println("Invalid project object or path.");
+    				return;
+    			}
+
+    			File projectDir = new File(project.getPath() + "/target/liberty/wlp/usr");
+    			System.out.println("Project Directory Path: " + projectDir);
+
+    			// Find the specific folder inside the project
+    			File specificFolder = findFolder(projectDir, folderName);
+
+    			if (specificFolder != null) {
+    				// Search for the specific file inside the found folder
+    				File targetFile = findFileInFolder(specificFolder, fileName);
+    				if (targetFile != null) {
+    					System.out.println("Found file: " + targetFile.getParent());
+    					File configDropins = new File(targetFile.getParent() + "/configDropins/overrides/disableApplicationMonitor.xml");
+
+    					String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
+    					createDirectoryStructure(configDropins, fileContent);
+
+    				} else {
+    					System.out.println("File '" + fileName + "' not found in folder '" + folderName + "'.");
+    				}
+    			} else {
+    				System.out.println("Folder '" + folderName + "' not found in the project.");
+    			}
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	} else {
+
+    	}
     }
+
+    // Method to recursively find a folder by name.
+    public File findFolder(File rootDir, String targetFolderName) {
+    	if (rootDir == null || !rootDir.isDirectory()) {
+    		return null;
+    	}
+
+    	if (rootDir.getName().equals(targetFolderName)) {
+    		return rootDir;  // Found the folder
+    	}
+
+    	File[] subDirs = rootDir.listFiles();
+    	if (subDirs != null) {
+    		for (File subDir : subDirs) {
+    			if (subDir.isDirectory()) {
+    				File found = findFolder(subDir, targetFolderName);
+    				if (found != null) {
+    					return found;
+    				}
+    			}
+    		}
+    	}
+    	return null;  // Folder not found
+    }
+
+    // Method to find a specific file in a folder
+    private File findFileInFolder(File folder, String fileName) {
+    	if (folder == null || !folder.isDirectory()) {
+    		return null;
+    	}
+
+    	File[] files = folder.listFiles();
+    	if (files != null) {
+    		for (File file : files) {
+    			if (file.isFile() && file.getName().equals(fileName)) {
+    				return file;  // Found the file
+    			} else if (file.isDirectory()) {
+    				File found = findFileInFolder(file, fileName);
+    				if (found != null) {
+    					return found;
+    				}
+    			}
+    		}
+    	}
+    	return null;  // File not found
+    }
+
+    private void createDirectoryStructure(File file, String content) {
+    	try {
+    		if (file.getParentFile() != null && !file.getParentFile().exists()) {
+    			file.getParentFile().mkdirs();
+    		}
+
+    		if (file.createNewFile()) {
+    			System.out.println("File created: " + file.getAbsolutePath());
+    			try (FileWriter writer = new FileWriter(file)) {
+    				writer.write(content);
+    				System.out.println("Content written to file successfully.");
+    			}
+    		} else {
+    			System.out.println("File already exists: " + file.getAbsolutePath());
+    		}
+    	} catch (IOException e) {
+    		System.err.println("An error occurred while creating the file: " + e.getMessage());
+    	}
+    }
+
 }
