@@ -301,7 +301,7 @@ public class DebugModeHandler {
                     display.syncExec(new Runnable() {
                         public void run() {
                             openDebugPerspective();
-                            enableDisableAppMonitoring(true, project);
+                            enableAppMonitoring(true, project);
                         }
                     });
                 } else {
@@ -603,11 +603,12 @@ public class DebugModeHandler {
     }
 
     // Enable/Disable app monitoring.
-    public void enableDisableAppMonitoring(Boolean isEnable, Project project) {
+    public void enableAppMonitoring(Boolean isEnable, Project project) {
+    	String folderName = "servers";
+		String fileName = "server.xml";
     	if (isEnable) {
-    		String folderName = "servers";
-    		String fileName = "server.xml";
-    		System.out.println("Started enable disable app monitoring");
+    		
+    		System.out.println("disable app monitoring");
 
     		try {
     			if (project == null || project.getPath() == null) {
@@ -641,7 +642,21 @@ public class DebugModeHandler {
     			e.printStackTrace();
     		}
     	} else {
+    		try {
+        		System.out.println("enable app monitoring");
 
+    			File usrDir = new File(project.getPath() + "/target");
+    			File configDropins = findFolder(usrDir, "configDropins");
+
+    			// Delete the directory if exists before creating
+    			if (configDropins != null) {
+    				deleteDirectory(configDropins);
+    				System.out.println("Deleted existing directory: " + configDropins.getAbsolutePath());
+    			}
+
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
     	}
     }
 
@@ -711,4 +726,16 @@ public class DebugModeHandler {
     	}
     }
 
+ // Method to delete a directory and its contents
+    private boolean deleteDirectory(File directory) {
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteDirectory(file);  // Recursively delete files and subdirectories
+                }
+            }
+        }
+        return directory.delete();  // Delete the directory (or file)
+    }
 }
