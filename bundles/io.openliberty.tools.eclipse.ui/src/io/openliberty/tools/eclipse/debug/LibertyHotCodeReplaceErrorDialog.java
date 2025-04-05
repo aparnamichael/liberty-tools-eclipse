@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -68,7 +68,6 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                 public void run() {
                     try {
                         operation[0] = DebugUIMessages.HotCodeReplaceErrorDialog_6;
-                        target.disconnect();
 
                         // Restart the debugger
                         DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -77,8 +76,12 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
                         Project project = devModeOps.getProjectModel().getProject(projectName);
 
-                        launch.removeDebugTarget(target);
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
+                        if (devModeOps.isProjectStarted(projectName)) {
+                        	devModeOps.restartServer(projectName);
+
+                        }
+                        launch.removeDebugTarget(target);
                         debugModeHandler.startDebugAttacher(project, launch, null);
                     } catch (CoreException e) {
                         ex[0] = e;
