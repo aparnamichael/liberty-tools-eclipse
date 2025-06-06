@@ -14,11 +14,6 @@ package io.openliberty.tools.eclipse.test.it.utils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleManager;
-import org.eclipse.ui.console.TextConsole;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -42,8 +38,15 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.TextConsole;
+import org.eclipse.ui.ide.IDE;
 import org.junit.jupiter.api.Assertions;
 import org.osgi.service.prefs.Preferences;
 
@@ -527,6 +530,25 @@ public class LibertyPluginTestUtils {
         }
 
         return jre;
+    }
+    
+    public static void openAFileInEditorWindow(String projectName, String filePath) {
+    	Display.getDefault().syncExec(() -> {
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (window != null) {
+                IWorkbenchPage page = window.getActivePage();
+                if (page != null) {
+                    IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+                    IFile file = root.getProject(projectName).getFile(filePath);
+
+                    try {
+                        IDE.openEditor(page, file);
+                    } catch (Exception e) {
+                		Assertions.fail("Failed to open the file in editor.");
+                    }
+                }
+            }
+        });
     }
 
 	/**

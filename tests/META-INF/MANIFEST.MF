@@ -9,7 +9,8 @@ Require-Bundle: junit-jupiter-api,
  org.eclipse.ui,
  org.hamcrest.library,
  org.eclipse.ui.console,
- org.eclipse.text
+ org.eclipse.text,
+ org.eclipse.ui.ide
 Import-Package: io.openliberty.tools.eclipse,
  io.openliberty.tools.eclipse.debug,
  io.openliberty.tools.eclipse.ui.dashboard,
