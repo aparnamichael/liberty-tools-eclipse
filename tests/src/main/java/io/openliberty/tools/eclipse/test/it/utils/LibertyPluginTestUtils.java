@@ -532,25 +532,6 @@ public class LibertyPluginTestUtils {
         return jre;
     }
     
-    public static void openAFileInEditorWindow(String projectName, String filePath) {
-    	Display.getDefault().syncExec(() -> {
-            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            if (window != null) {
-                IWorkbenchPage page = window.getActivePage();
-                if (page != null) {
-                    IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-                    IFile file = root.getProject(projectName).getFile(filePath);
-
-                    try {
-                        IDE.openEditor(page, file);
-                    } catch (Exception e) {
-                		Assertions.fail("Failed to open the file in editor.");
-                    }
-                }
-            }
-        });
-    }
-
 	/**
 	 * Returns the path of the xml file containing app monitoring configuration.
 	 *

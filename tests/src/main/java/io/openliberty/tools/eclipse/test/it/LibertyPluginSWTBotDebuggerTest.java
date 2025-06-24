@@ -18,6 +18,8 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openFileInEditorByTitle;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.editLineContent;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -25,6 +27,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
+import org.eclipse.swtbot.swt.finder.waits.ICondition;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -336,33 +341,19 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
     	}
     	
-    	LibertyPluginTestUtils.openAFileInEditorWindow(MVN_APP_NAME, "src/main/java/test/maven/liberty/web/app/HelloServlet.java");
+    	openFileInEditorByTitle(bot, "HelloServlet.java");
+		bot.sleep(5000);
 
-         // Wait for editor to open and assert it's open
-         bot.editorByTitle("HelloServlet.java").show();
-         
-         SWTBotStyledText text = bot.styledText();
-         text.setFocus();
-         String content = text.getText();
-         int insertOffset = content.lastIndexOf('}');
-         
-         String aboveClosingBraces = content.substring(0, insertOffset);
-         String belowClosingBraces = content.substring(insertOffset);
-         String newMethodToAdd = "\npublic void test() {}";
-         String updatedCode = aboveClosingBraces +  newMethodToAdd + belowClosingBraces;
-         text.setText(updatedCode);      
-         
-         bot.activeEditor().save();
-     }
-//    	
-//    	 Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-//         Object project = MagicWidgetFinder.find(MVN_APP_NAME, peView);
-//         
-//         if(project == null) {
-//     		Assertions.fail("Project not found in the project explorer.");
-//         }
-         
+		boolean success = editLineContent(bot, 22, "\npublic void test() {}\n");
+		if (success) {
+			bot.sleep(5000);
 
+			SWTBotEditor editor = bot.editorByTitle("HelloServlet.java");
+			editor.save();
+			bot.sleep(5000);
+
+
+		}
          
 //    	// Stop dev mode.
 //    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
@@ -371,5 +362,5 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
 //    	LibertyPluginTestUtils
 //    	.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-//    }
+    }
 }
