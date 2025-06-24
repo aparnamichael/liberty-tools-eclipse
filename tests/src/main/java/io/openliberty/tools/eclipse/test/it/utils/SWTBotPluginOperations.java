@@ -48,6 +48,7 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
+import org.eclipse.swtbot.swt.finder.waits.DefaultCondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
@@ -998,6 +999,67 @@ public class SWTBotPluginOperations {
         } catch (Exception e) {
             // Not a problem if error wasn't generated. Continue...
         }
+    }
+
+    
+    /**
+     * Opens a file in an editor window by its name.
+     *
+     * @param Filename The name of the file to be opened
+     */
+    public static void openFileInEditorByTitle(SWTWorkbenchBot bot, String fileName) {
+    	// Open the "Open Resource" dialog
+    	bot.menu("Navigate").menu("Open Resource...").click();
+
+    	// Type the file name
+    	SWTBotShell shell = bot.shell("Open Resource");
+    	shell.activate();
+    	shell.bot().text().setText(fileName);
+
+    	// Wait and select the file
+
+
+    	bot.waitUntil(new DefaultCondition() {
+    		@Override
+    		public boolean test() throws Exception {
+    			return shell.bot().table().rowCount() > 0
+    					&& shell.bot().table().getTableItem(0).getText().contains(fileName);
+    		}
+
+    		@Override
+    		public String getFailureMessage() {
+    			return "Expected file '" + fileName + "' not found in Open Resource dialog.";
+    		}
+    	});
+    	
+    	// Wait for search results
+    	shell.bot().table().select(0);
+    	shell.bot().button("Open").click();
+
+    	bot.editorByTitle(fileName).show();
+    }
+
+    /**
+     * This method edits the content of a specific line in the styled text component
+     * of the workbench.
+     *
+     * @param bot        The SWTWorkbenchBot instance used to interact with the
+     *                   workbench.
+     * @param lineNumber The line number (0-indexed) in the styled text component to
+     *                   edit.
+     * @param content    The new content to insert into the specified line.
+     * @return true if the line was successfully edited, false otherwise.
+     */
+    public static boolean editLineContent(SWTWorkbenchBot bot, int lineNumber, String content) {
+    	SWTBotStyledText styledText = bot.styledText();
+    	int totalLines = styledText.getLineCount();
+    	styledText.setFocus();
+    	if (lineNumber >= 0 && lineNumber < totalLines) {
+    		styledText.navigateTo(lineNumber, 0);
+    		styledText.insertText(content);
+    		return true;
+    	}
+    	return false;
     }
 
     /**
